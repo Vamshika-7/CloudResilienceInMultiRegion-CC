@@ -1,10 +1,7 @@
-// API client for communicating exclusively with the API Gateway
-
-const GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || "http://localhost:8000/api";
-const GATEWAY_BASE = GATEWAY_URL.replace(/\/api\/?$/, "");
+// API client for communicating with the backend via deployment-independent relative paths
 
 export async function fetchHealth() {
-  const res = await fetch(`${GATEWAY_BASE}/health`);
+  const res = await fetch('/health');
   if (!res.ok) {
     throw new Error(`Gateway returned health check error: ${res.status}`);
   }
@@ -12,7 +9,7 @@ export async function fetchHealth() {
 }
 
 export async function fetchProducts() {
-  const res = await fetch(`${GATEWAY_URL}/products`);
+  const res = await fetch('/api/products');
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to fetch products: ${res.status}`);
@@ -21,7 +18,7 @@ export async function fetchProducts() {
 }
 
 export async function fetchProductById(id) {
-  const res = await fetch(`${GATEWAY_URL}/products/${id}`);
+  const res = await fetch(`/api/products/${id}`);
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to fetch product ${id}`);
@@ -30,7 +27,7 @@ export async function fetchProductById(id) {
 }
 
 export async function createOrder({ userId = "user_demo", productId, quantity }) {
-  const res = await fetch(`${GATEWAY_URL}/orders`, {
+  const res = await fetch('/api/orders', {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -50,7 +47,7 @@ export async function createOrder({ userId = "user_demo", productId, quantity })
 }
 
 export async function fetchOrders() {
-  const res = await fetch(`${GATEWAY_URL}/orders`);
+  const res = await fetch('/api/orders');
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to fetch orders`);
@@ -59,7 +56,7 @@ export async function fetchOrders() {
 }
 
 export async function fetchOrderById(id) {
-  const res = await fetch(`${GATEWAY_URL}/orders/${id}`);
+  const res = await fetch(`/api/orders/${id}`);
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Order #${id} not found`);
@@ -68,7 +65,7 @@ export async function fetchOrderById(id) {
 }
 
 export async function processPayment({ orderId, amount, simulateFailure = false }) {
-  const res = await fetch(`${GATEWAY_URL}/payments`, {
+  const res = await fetch('/api/payments', {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
