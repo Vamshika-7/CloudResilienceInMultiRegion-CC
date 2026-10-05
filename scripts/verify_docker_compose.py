@@ -26,7 +26,10 @@ def main():
         config = yaml.safe_load(f)
 
     print(f"=== Docker Compose Configuration Validation ===")
-    print(f"Compose Spec Version: {config.get('version')}")
+    if config.get("version"):
+        print(f"Compose Spec Version: {config.get('version')}")
+    else:
+        print("Compose Spec: Modern Compose Specification (top-level 'version' attribute omitted)")
 
     services = config.get("services", {})
     required_services = [
