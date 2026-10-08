@@ -1,7 +1,7 @@
 # Empirical Resilience Evaluation of Multi-Region Cloud Architectures under Orchestration Chaos Injections
 
-> **Milestone 2**: Dockerization of E-Commerce Microservices Testbed  
-> *Note: This milestone establishes containerized execution and networking using Docker Compose. Kubernetes, K3s, Istio, Chaos Mesh, JMeter, Prometheus, Grafana, AWS, and multi-region deployment will be implemented in subsequent milestones.*
+> **Milestone 3**: Deployment to Local K3s / Kubernetes Environment  
+> *Note: This milestone establishes single-cluster Kubernetes orchestration, manifests, persistent storage, health probes, and ingress routing. Multi-cluster federation, Istio service mesh, Chaos Mesh, JMeter, Prometheus, Grafana, and multi-region chaos experiments will be implemented in subsequent milestones.*
 
 ---
 
@@ -374,11 +374,111 @@ postgres (healthy)
 
 ---
 
-## 9. Future Milestones Roadmap
+## 9. Kubernetes (K3s) Architecture & Deployment (Milestone 3)
 
-- **Milestone 3**: Orchestration deployment using K3s across two virtual clusters.
+Milestone 3 deploys the complete e-commerce testbed to a local K3s cluster (`ecommerce`), using declarative Kubernetes manifests located in the `k8s/` directory.
+
+### Kubernetes Architecture
+
+```text
+Browser / Client (http://localhost:5173 or http://localhost:8000)
+                              │
+        ┌─────────────────────┴─────────────────────┐
+        │ Port 5173                                 │ Port 8000
+        ▼                                           ▼
+┌─────────────────────────────┐           ┌─────────────────────────────┐
+│   Ingress (ecommerce-ingress)│           │   Service: gateway          │
+│   (Traefik / Port 80)       │           │   (Type: LoadBalancer 8000) │
+└──────────────┬──────────────┘           └──────────────┬──────────────┘
+               │                                         │
+               ▼                                         ▼
+┌─────────────────────────────┐           ┌─────────────────────────────┐
+│   Service: frontend         │           │   Deployment: gateway       │
+│   (Type: ClusterIP 80)      │           │   (cc-gateway:latest)       │
+│   Deployment: frontend      │           └──────┬───────┬───────┬──────┘
+│   (Nginx reverse proxy)     │                  │       │       │
+│   - /      ──► Static UI    │                  │       │       │
+│   - /api/  ──► gateway:8000 ├──────────────────┘       │       │
+│   - /health──► gateway:8000 │                          │       │
+└─────────────────────────────┘                          │       │
+                                                         │       │
+               ┌─────────────────────────────────────────┘       │       └─────────────────────────┐
+               │ http://product-service:8001                     │ http://order-service:8002       │ http://payment-service:8003
+               ▼                                                 ▼                                 ▼
+┌─────────────────────────────┐                   ┌─────────────────────────────┐   ┌─────────────────────────────┐
+│  Service: product-service   │                   │   Service: order-service    │   │  Service: payment-service   │
+│  (Type: ClusterIP 8001)     │                   │   (Type: ClusterIP 8002)    │   │  (Type: ClusterIP 8003)     │
+│  Deployment: product-service│◄──────────────────┤   Deployment: order-service │◄──┤  Deployment: payment-service│
+│  (cc-product-service:latest)│       REST        │   (cc-order-service:latest) │   │  (cc-payment-service:latest)│
+└──────────────┬──────────────┘                   └──────────────┬──────────────┘   └──────────────┬──────────────┘
+               │                                                 │                                 │
+               │ postgresql://postgres@postgres:5432             │                                 │
+               └─────────────────────────────────────────┐       │       ┌─────────────────────────┘
+                                                         ▼       ▼       ▼
+                                          ┌─────────────────────────────────────────────┐
+                                          │              Service: postgres              │
+                                          │            (ClusterIP Port 5432)            │
+                                          │            Deployment: postgres             │
+                                          │            (postgres:16-alpine)             │
+                                          │  - PersistentVolumeClaim: postgres-pvc      │
+                                          │  - ConfigMap: postgres-init-scripts         │
+                                          └─────────────────────────────────────────────┘
+                                                All resources in namespace: ecommerce
+```
+
+### Kubernetes Manifests Structure (`k8s/`)
+
+- `k8s/00-namespace.yaml`: Defines dedicated `ecommerce` namespace.
+- `k8s/01-configmap-secret.yaml`:
+  - `Secret: ecommerce-secrets`: Database credentials and connection string (`DB_USER`, `DB_PASSWORD`, `DATABASE_URL`).
+  - `ConfigMap: ecommerce-config`: Service hostnames, ports, and inter-service URLs using Kubernetes Service DNS.
+  - `ConfigMap: postgres-init-scripts`: DDL schema (`01-init.sql`) and sample catalog (`02-seed.sql`).
+- `k8s/02-postgres.yaml`: `PersistentVolumeClaim: postgres-pvc` (1Gi backed by K3s `local-path` storage), PostgreSQL Deployment, and Service (`postgres:5432`).
+- `k8s/03-product-service.yaml`: Deployment and ClusterIP Service (`product-service:8001`) with HTTP `/health` probes.
+- `k8s/04-order-service.yaml`: Deployment and ClusterIP Service (`order-service:8002`) with HTTP `/health` probes.
+- `k8s/05-payment-service.yaml`: Deployment and ClusterIP Service (`payment-service:8003`) with HTTP `/health` probes.
+- `k8s/06-gateway.yaml`: Deployment and LoadBalancer Service (`gateway:8000`) exposing host port 8000 with HTTP `/health` probes.
+- `k8s/07-frontend.yaml`: Deployment and ClusterIP Service (`frontend:80`) with HTTP liveness/readiness probes.
+- `k8s/08-ingress.yaml`: Ingress resource (`ecommerce-ingress`) routing external traffic on port 80 (mapped to host 5173) to `frontend:80`.
+
+### Deploying to K3s
+
+#### Step 1: Apply All Manifests
+```bash
+kubectl apply -f k8s/
+```
+
+#### Step 2: Verify Pod and Service Status
+```bash
+kubectl get pods,svc,pvc,ingress -n ecommerce -o wide
+```
+All 6 pods will transition to `Running` (1/1) and pass readiness probes.
+
+#### Step 3: Run Manifest Validation Script
+```bash
+python scripts/verify_k8s.py
+```
+
+#### Step 4: Run End-to-End Test Suite
+```bash
+python scripts/verify_k8s_e2e.py
+```
+This script exercises:
+1. API Gateway `/health` check verifying downstream connectivity.
+2. Frontend static bundle delivery via Ingress on port 5173.
+3. Frontend reverse proxy `/health` and `/api/products` routing.
+4. Order placement (`POST /api/orders`) and persistence in PostgreSQL.
+5. Order lookup (`GET /api/orders/{id}`).
+6. Successful payment processing (`POST /api/payments`) and order state transition to `PAID`.
+7. Simulated chaos payment failure (`simulate_failure: true`) and order state transition to `FAILED`.
+
+---
+
+## 10. Future Milestones Roadmap
+
 - **Milestone 4**: Multi-region service mesh configuration using Istio (traffic routing, failover, virtual services).
 - **Milestone 5**: Chaos engineering testbed deployment using Chaos Mesh (pod failure, network latency, partition).
 - **Milestone 6**: Distributed performance profiling & benchmark generation using Apache JMeter.
 - **Milestone 7**: Telemetry and metrics aggregation using Prometheus & Grafana dashboards.
 - **Milestone 8**: Empirical data analysis, resilience metric calculations, and research publication write-up.
+
