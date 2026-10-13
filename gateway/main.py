@@ -1,13 +1,14 @@
 import logging
 import uuid
 import time
+import asyncio
 from typing import Optional, Any
 import httpx
 from fastapi import FastAPI, Request, Response, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from config import PORT, PRODUCT_SERVICE_URL, ORDER_SERVICE_URL, PAYMENT_SERVICE_URL
+from config import PORT, PRODUCT_SERVICE_URL, ORDER_SERVICE_URL, PAYMENT_SERVICE_URL, REGION_ID
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +42,7 @@ async def observability_middleware(request: Request, call_next):
         response = await call_next(request)
         duration_ms = round((time.time() - start_time) * 1000, 2)
         response.headers["X-Request-ID"] = req_id
+        response.headers["X-Served-By"] = REGION_ID
         logger.info(f"[{req_id}] COMPLETED {request.method} {request.url.path} -> Status {response.status_code} ({duration_ms}ms)")
         return response
     except Exception as exc:
@@ -112,26 +114,52 @@ async def proxy_request(
             headers={"X-Request-ID": req_id}
         )
 
-# Health endpoint (checks Gateway and downstreams)
+# Lightweight liveness endpoint (no downstream or DB calls)
+@app.get("/live", tags=["Health"])
+async def gateway_live():
+    return {
+        "status": "alive",
+        "service": "api-gateway",
+        "region": REGION_ID
+    }
+
+# Health endpoint (checks Gateway and downstreams concurrently)
 @app.get("/health", tags=["Health"])
-async def gateway_health():
+async def gateway_health(response: Response):
     services_status = {}
-    async with httpx.AsyncClient(timeout=2.0) as client:
-        for name, url in [
-            ("product_service", PRODUCT_SERVICE_URL),
-            ("order_service", ORDER_SERVICE_URL),
-            ("payment_service", PAYMENT_SERVICE_URL)
-        ]:
+    downstreams = [
+        ("product_service", PRODUCT_SERVICE_URL),
+        ("order_service", ORDER_SERVICE_URL),
+        ("payment_service", PAYMENT_SERVICE_URL)
+    ]
+
+    async with httpx.AsyncClient(timeout=1.5) as client:
+        async def check_downstream(name: str, url: str):
             try:
                 r = await client.get(f"{url}/health")
-                services_status[name] = "healthy" if r.status_code == 200 else f"unhealthy ({r.status_code})"
+                return name, ("healthy" if r.status_code == 200 else f"unhealthy ({r.status_code})")
             except Exception:
-                services_status[name] = "unreachable"
+                return name, "unreachable"
+
+        results = await asyncio.gather(
+            *(check_downstream(name, url) for name, url in downstreams),
+            return_exceptions=True
+        )
+
+        for res in results:
+            if isinstance(res, tuple):
+                services_status[res[0]] = res[1]
+            elif isinstance(res, Exception):
+                logger.warning(f"Error during health check: {res}")
 
     overall_status = "healthy" if all(v == "healthy" for v in services_status.values()) else "degraded"
+    if overall_status != "healthy":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
     return {
         "status": overall_status,
         "service": "api-gateway",
+        "region": REGION_ID,
         "downstream_services": services_status
     }
 

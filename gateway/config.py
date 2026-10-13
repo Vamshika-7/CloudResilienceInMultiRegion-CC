@@ -9,3 +9,4 @@ PRODUCT_SERVICE_URL = os.getenv("PRODUCT_SERVICE_URL", "http://localhost:8001").
 ORDER_SERVICE_URL = os.getenv("ORDER_SERVICE_URL", "http://localhost:8002").rstrip('/')
 PAYMENT_SERVICE_URL = os.getenv("PAYMENT_SERVICE_URL", "http://localhost:8003").rstrip('/')
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/ecommerce")
+REGION_ID = os.getenv("REGION_ID", "region-a")

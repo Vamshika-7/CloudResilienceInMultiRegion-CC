@@ -14,6 +14,14 @@ def client():
     with TestClient(app) as test_client:
         yield test_client
 
+def test_gateway_live(client):
+    response = client.get("/live")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "alive"
+    assert data["service"] == "api-gateway"
+    assert "region" in data
+
 @patch("httpx.AsyncClient.get")
 def test_gateway_health(mock_get, client):
     mock_resp = MagicMock()
@@ -24,7 +32,25 @@ def test_gateway_health(mock_get, client):
     assert response.status_code == 200
     data = response.json()
     assert data["service"] == "api-gateway"
+    assert data["status"] == "healthy"
     assert "downstream_services" in data
+
+@patch("httpx.AsyncClient.get")
+def test_gateway_health_degraded_returns_503(mock_get, client):
+    mock_resp = MagicMock()
+    mock_resp.status_code = 500
+    mock_get.return_value = mock_resp
+
+    # /health should return 503 when downstreams are unhealthy
+    response = client.get("/health")
+    assert response.status_code == 503
+    data = response.json()
+    assert data["status"] == "degraded"
+
+    # But /live should still return 200 independent of downstream health
+    live_response = client.get("/live")
+    assert live_response.status_code == 200
+    assert live_response.json()["status"] == "alive"
 
 @patch("httpx.AsyncClient.request")
 def test_proxy_products_route(mock_request, client):

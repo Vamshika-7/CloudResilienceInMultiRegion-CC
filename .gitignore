@@ -43,6 +43,12 @@ dist-ssr/
 .pgsql/
 *.log
 
+# Generated experiment data
+experiments/results/*.jtl
+experiments/results/*.csv
+experiments/reports/
+experiments/charts/*.png
+
 # OS & IDE
 .DS_Store
 Thumbs.db
