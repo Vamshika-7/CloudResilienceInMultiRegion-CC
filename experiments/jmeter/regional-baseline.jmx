@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Regional baseline" enabled="true">
+      <stringProp name="TestPlan.comments">One read-only GET workload per run. Select /live or /api/products with targetUrl and workload properties.</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="Run metadata" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="region" elementType="Argument">
+            <stringProp name="Argument.name">region</stringProp>
+            <stringProp name="Argument.value">${__P(region,unspecified)}</stringProp>
+            <stringProp name="Argument.desc">Region identifier recorded in each JTL row</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="workload" elementType="Argument">
+            <stringProp name="Argument.name">workload</stringProp>
+            <stringProp name="Argument.value">${__P(workload,Gateway liveness)}</stringProp>
+            <stringProp name="Argument.desc">Request label and workload type</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="endpoint" elementType="Argument">
+            <stringProp name="Argument.name">endpoint</stringProp>
+            <stringProp name="Argument.value">${__P(targetUrl,http://localhost:8000/live)}</stringProp>
+            <stringProp name="Argument.desc">Full target URL, configured with -JtargetUrl</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="expectedStatus" elementType="Argument">
+            <stringProp name="Argument.name">expectedStatus</stringProp>
+            <stringProp name="Argument.value">${__P(expectedStatus,200)}</stringProp>
+            <stringProp name="Argument.desc">Expected HTTP response status</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="users" elementType="Argument">
+            <stringProp name="Argument.name">users</stringProp>
+            <stringProp name="Argument.value">${__P(users,1)}</stringProp>
+            <stringProp name="Argument.desc">Virtual users</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="rampUpSec" elementType="Argument">
+            <stringProp name="Argument.name">rampUpSec</stringProp>
+            <stringProp name="Argument.value">${__P(rampUpSec,1)}</stringProp>
+            <stringProp name="Argument.desc">Ramp-up period in seconds</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="durationSec" elementType="Argument">
+            <stringProp name="Argument.name">durationSec</stringProp>
+            <stringProp name="Argument.value">${__P(durationSec,10)}</stringProp>
+            <stringProp name="Argument.desc">Scheduled measurement period in seconds</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="jmeterVersion" elementType="Argument">
+            <stringProp name="Argument.name">jmeterVersion</stringProp>
+            <stringProp name="Argument.value">${__P(jmeterVersion,not-recorded)}</stringProp>
+            <stringProp name="Argument.desc">JMeter version recorded in each JTL row</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="javaVersion" elementType="Argument">
+            <stringProp name="Argument.name">javaVersion</stringProp>
+            <stringProp name="Argument.value">${__P(javaVersion,not-recorded)}</stringProp>
+            <stringProp name="Argument.desc">Java runtime version recorded in each JTL row</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Regional baseline workload" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Run for configured duration" enabled="true">
+          <boolProp name="LoopController.continue_forever">true</boolProp>
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${users}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${rampUpSec}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">${durationSec}</stringProp>
+        <stringProp name="ThreadGroup.delay">0</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="${workload}" enabled="true">
+          <stringProp name="HTTPSampler.domain">${__groovy(new java.net.URI(vars.get('endpoint')).getHost())}</stringProp>
+          <stringProp name="HTTPSampler.port">${__groovy(new java.net.URI(vars.get('endpoint')).getPort() == -1 ? (new java.net.URI(vars.get('endpoint')).getScheme() == 'https' ? 443 : 80) : new java.net.URI(vars.get('endpoint')).getPort())}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${__groovy(new java.net.URI(vars.get('endpoint')).getScheme())}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.path">${__groovy(new java.net.URI(vars.get('endpoint')).getRawPath() ?: '/')}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout">3000</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">8000</stringProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Request parameters" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Expected HTTP status" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="200">${expectedStatus}</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message">Unexpected HTTP response status</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
