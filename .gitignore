@@ -48,6 +48,10 @@ experiments/results/*.jtl
 experiments/results/*.csv
 experiments/reports/
 experiments/charts/*.png
+results/*.jtl
+results/*.csv
+*-00000*.jmx
+desktop.ini
 
 # OS & IDE
 .DS_Store
