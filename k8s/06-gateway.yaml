@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: cc-gateway:latest
+          image: localhost:5000/cc-gateway:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

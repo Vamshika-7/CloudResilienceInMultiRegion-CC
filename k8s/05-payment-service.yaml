@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: cc-payment-service:latest
+          image: localhost:5000/cc-payment-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8003
