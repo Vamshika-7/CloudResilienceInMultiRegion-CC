@@ -1,0 +1,17 @@
+﻿apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: test-network-packet-loss
+  namespace: chaos-lab
+spec:
+  action: loss
+  mode: all
+  selector:
+    namespaces:
+      - chaos-lab
+    labelSelectors:
+      run: network-test
+  loss:
+    loss: "10"
+    correlation: "0"
+  duration: "30s"

@@ -1,0 +1,22 @@
+﻿apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: test-network-partition
+  namespace: chaos-lab
+spec:
+  action: partition
+  mode: all
+  selector:
+    namespaces:
+      - chaos-lab
+    labelSelectors:
+      run: network-test
+  direction: both
+  target:
+    mode: all
+    selector:
+      namespaces:
+        - chaos-lab
+      labelSelectors:
+        run: network-test-target
+  duration: "30s"
