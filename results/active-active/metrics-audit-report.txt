@@ -1,0 +1,60 @@
+=== JMeter JTL Audit Report ===
+Active directory: results/active-active
+JTL files: ['jmeter-haproxy-run.jtl', 'jmeter-single-run.jtl', 'region-a.jtl', 'region-b.jtl']
+
+--- jmeter-haproxy-run.jtl ---
+  Sample count: 1000
+  Success: 1000, Failed: 0
+  Error rate: 0.0%
+  HTTP status dist: {'200': 1000}
+  Min latency: 2 ms
+  Max latency: 201 ms
+  Avg latency: 18.47 ms
+  P50: 13 ms, P90: 40 ms
+  P95: 48 ms, P99: 90 ms
+  Timestamp span: 9178 ms (9.178 s)
+  Throughput: 108.96 samples/s
+
+--- jmeter-single-run.jtl ---
+  Sample count: 1000
+  Success: 1000, Failed: 0
+  Error rate: 0.0%
+  HTTP status dist: {'200': 1000}
+  Min latency: 2 ms
+  Max latency: 172 ms
+  Avg latency: 13.93 ms
+  P50: 9 ms, P90: 30 ms
+  P95: 44 ms, P99: 75 ms
+  Timestamp span: 9430 ms (9.43 s)
+  Throughput: 106.04 samples/s
+
+--- region-a.jtl ---
+  Sample count: 1000
+  Success: 1000, Failed: 0
+  Error rate: 0.0%
+  HTTP status dist: {'200': 1000}
+  Min latency: 2 ms
+  Max latency: 197 ms
+  Avg latency: 11.84 ms
+  P50: 6 ms, P90: 23 ms
+  P95: 47 ms, P99: 113 ms
+  Timestamp span: 10918 ms (10.918 s)
+  Throughput: 91.59 samples/s
+
+--- region-b.jtl ---
+  Sample count: 1000
+  Success: 1000, Failed: 0
+  Error rate: 0.0%
+  HTTP status dist: {'200': 1000}
+  Min latency: 3 ms
+  Max latency: 3188 ms
+  Avg latency: 101.81 ms
+  P50: 25 ms, P90: 111 ms
+  P95: 284 ms, P99: 2793 ms
+  Timestamp span: 16060 ms (16.06 s)
+  Throughput: 62.27 samples/s
+
+=== Combined Summary ===
+Total samples across all runs: 4000
+Total errors: 0 (0.0%)
+Weighted average latency: 36.51 ms

@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: region-b-ingress
+  namespace: region-b
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /region-b
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-rb
+                port:
+                  number: 80

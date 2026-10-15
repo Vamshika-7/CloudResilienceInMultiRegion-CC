@@ -1,0 +1,5 @@
+file,sample_count,success_count,error_count,error_rate_pct,min_elapsed_ms,max_elapsed_ms,avg_elapsed_ms,p50_elapsed_ms,p90_elapsed_ms,p95_elapsed_ms,p99_elapsed_ms,timestamp_span_ms,timestamp_span_s,throughput_samples_per_s
+jmeter-haproxy-run.jtl,1000,1000,0,0.0,2,201,18.47,13,40,48,90,9178,9.178,108.96
+jmeter-single-run.jtl,1000,1000,0,0.0,2,172,13.93,9,30,44,75,9430,9.43,106.04
+region-a.jtl,1000,1000,0,0.0,2,197,11.84,6,23,47,113,10918,10.918,91.59
+region-b.jtl,1000,1000,0,0.0,3,3188,101.81,25,111,284,2793,16060,16.06,62.27

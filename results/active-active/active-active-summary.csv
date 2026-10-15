@@ -1,0 +1,4 @@
+region,sample_count,avg_latency_ms,min_latency_ms,max_latency_ms,p95_latency_ms,error_count,error_rate_pct,throughput_samples_per_s,timestamp_span_s
+haproxy-run,1000,13.93,106,4,44,0,0.0,0.0,0.0
+region-a,1000,11.84,88,6,47,0,0.0,0.0,0.0
+region-b,1000,101.81,140,4,281,0,0.0,0.0,0.0

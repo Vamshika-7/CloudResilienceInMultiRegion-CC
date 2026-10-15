@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+  namespace: ecommerce
+data:
+  haproxy.cfg: |
+    global
+        log 127.0.0.1 local0
+
+    defaults
+        mode http
+        log global
+        option httplog
+        option dontlognull
+        timeout connect 5000
+        timeout client 50000
+        timeout server 50000
+        timeout http-request 5000
+
+    frontend http
+        bind *:80
+        default_backend backends
+
+    backend backends
+        balance roundrobin
+        server region-a 10.43.180.72:8000 check fall 3 rise 3
+        server region-b 10.43.201.65:8000 check fall 3 rise 3
