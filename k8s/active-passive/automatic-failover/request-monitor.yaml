@@ -1,0 +1,32 @@
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: request-monitor
+  namespace: ecommerce
+spec:
+  restartPolicy: Never
+  containers:
+    - name: monitor
+      image: python:3.11-slim
+      command: ["python", "-u", "/scripts/request_monitor.py"]
+      env:
+        - name: TARGET_URL
+          value: "http://gateway:8000/live"
+        - name: OUTPUT_CSV
+          value: "/results/automatic-failover-run-03.csv"
+        - name: INTERVAL_SECONDS
+          value: "0.5"
+        - name: REQUEST_TIMEOUT
+          value: "2"
+      volumeMounts:
+        - name: script
+          mountPath: /scripts
+        - name: request-results
+          mountPath: /results
+  volumes:
+    - name: script
+      configMap:
+        name: request-monitor-script
+    - name: request-results
+      emptyDir: {}

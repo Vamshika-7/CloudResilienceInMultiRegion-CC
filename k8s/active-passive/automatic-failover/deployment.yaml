@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: failover-controller
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failover-controller
+  template:
+    metadata:
+      labels:
+        app: failover-controller
+    spec:
+      serviceAccountName: failover-controller
+      containers:
+        - name: controller
+          image: cc-failover-controller:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NAMESPACE
+              value: "ecommerce"
+            - name: SERVICE_NAME
+              value: "gateway"
+            - name: REGION_A
+              value: "region-a"
+            - name: REGION_B
+              value: "region-b"
+            - name: CHECK_INTERVAL
+              value: "3"
+            - name: FAILURE_THRESHOLD
+              value: "3"
+            - name: REQUEST_TIMEOUT
+              value: "2"
+            - name: LOG_PATH
+              value: "/logs/automatic-failover.csv"
+          volumeMounts:
+            - name: controller-logs
+              mountPath: /logs
+      volumes:
+        - name: controller-logs
+          persistentVolumeClaim:
+            claimName: failover-controller-logs

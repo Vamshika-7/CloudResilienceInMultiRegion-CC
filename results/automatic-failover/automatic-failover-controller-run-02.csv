@@ -1,0 +1,17 @@
+﻿timestamp_utc,event,active_region,consecutive_failures,details
+2026-10-15T04:13:47.084455+00:00,controller_started,region-a,,
+2026-10-15T04:16:21.333332+00:00,region_a_probe_failed,region-a,1,no ready gateway pod
+2026-10-15T04:16:24.342878+00:00,region_a_probe_failed,region-a,2,no ready gateway pod
+2026-10-15T04:16:27.353572+00:00,region_a_probe_failed,region-a,3,no ready gateway pod
+2026-10-15T04:16:27.353673+00:00,failover_detected,region-a,3,Consecutive failure threshold reached
+2026-10-15T04:16:27.416566+00:00,failover_switch_initiated,region-a,3,Patching gateway Service selector to Region B
+2026-10-15T04:16:27.426853+00:00,failover_switch_completed,region-b,3,Service selector patch accepted; verify endpoint and client success separately
+2026-10-15T04:35:11.199328+00:00,selector_changed_after_failover,region-a,,
+2026-10-15T04:35:13.908820+00:00,controller_started,region-a,,
+2026-10-15T04:35:39.817037+00:00,controller_started,region-a,,
+2026-10-15T04:38:26.118228+00:00,region_a_probe_failed,region-a,1,no ready gateway pod
+2026-10-15T04:38:29.128155+00:00,region_a_probe_failed,region-a,2,no ready gateway pod
+2026-10-15T04:38:32.138452+00:00,region_a_probe_failed,region-a,3,no ready gateway pod
+2026-10-15T04:38:32.138630+00:00,failover_detected,region-a,3,Consecutive failure threshold reached
+2026-10-15T04:38:32.177182+00:00,failover_switch_initiated,region-a,3,Patching gateway Service selector to Region B
+2026-10-15T04:38:32.188657+00:00,failover_switch_completed,region-b,3,Service selector patch accepted; verify endpoint and client success separately

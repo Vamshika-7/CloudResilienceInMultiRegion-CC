@@ -1,0 +1,79 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-region-a
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+      region: region-a
+  template:
+    metadata:
+      labels:
+        app: gateway
+        region: region-a
+    spec:
+      containers:
+        - name: gateway
+          image: cc-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: REGION_ID
+              value: region-a
+            - name: PRODUCT_SERVICE_URL
+              value: http://product-service:8001
+            - name: ORDER_SERVICE_URL
+              value: http://order-service:8002
+            - name: PAYMENT_SERVICE_URL
+              value: http://payment-service:8003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-region-b
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+      region: region-b
+  template:
+    metadata:
+      labels:
+        app: gateway
+        region: region-b
+    spec:
+      containers:
+        - name: gateway
+          image: cc-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: REGION_ID
+              value: region-b
+            - name: PRODUCT_SERVICE_URL
+              value: http://product-service:8001
+            - name: ORDER_SERVICE_URL
+              value: http://order-service:8002
+            - name: PAYMENT_SERVICE_URL
+              value: http://payment-service:8003
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+    region: region-a
+  ports:
+    - port: 8000
+      targetPort: 8000
